@@ -1,0 +1,153 @@
+openapi: 3.0.0
+info:
+  title: Order Service API
+  version: 1.0.0
+  description: |
+    Place orders (checks Inventory), generate invoice metadata, and publish order events to Shipping via RabbitMQ.
+servers:
+  - url: http://localhost:5002
+    description: Local dev server
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Service is running
+
+  /orders:
+    post:
+      summary: Place an order
+      description: |
+        Create an order after checking inventory. On success returns the saved order (order_id, items, total_amount, status).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreate'
+      responses:
+        '201':
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Bad request / insufficient stock
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /orders/{order_id}:
+    get:
+      summary: Get order by ID
+      parameters:
+        - in: path
+          name: order_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Order details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /orders/{order_id}/invoice:
+    get:
+      summary: Get invoice for an order
+      description: Returns invoice metadata. (If you implement PDF generation, you can return a PDF response or a URL.)
+      parameters:
+        - in: path
+          name: order_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Invoice metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+        '404':
+          description: Order/invoice not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    OrderItem:
+      type: object
+      properties:
+        sku:
+          type: string
+          example: A101
+        qty:
+          type: integer
+          example: 2
+
+    OrderCreate:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+
+    Order:
+      type: object
+      properties:
+        order_id:
+          type: string
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        total_amount:
+          type: number
+          format: float
+          example: 219.8
+        status:
+          type: string
+          example: PENDING
+
+    Invoice:
+      type: object
+      properties:
+        invoice_id:
+          type: string
+          example: inv_20250926_0001
+        order_id:
+          type: string
+        total_amount:
+          type: number
+          format: float
+        generated_at:
+          type: string
+          format: date-time
+        pdf_url:
+          type: string
+          description: Optional URL to download the invoice PDF (if implemented)
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string

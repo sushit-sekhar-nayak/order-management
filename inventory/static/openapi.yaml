@@ -1,0 +1,153 @@
+openapi: 3.0.0
+info:
+  title: Inventory Service API
+  version: 1.0.0
+  description: API for managing products and checking inventory availability.
+
+servers:
+  - url: http://localhost:5001
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Service is running
+
+  /products:
+    post:
+      summary: Add a new product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sku:
+                  type: string
+                  example: "A101"
+                name:
+                  type: string
+                  example: "Widget"
+                quantity:
+                  type: integer
+                  example: 10
+                price:
+                  type: number
+                  format: float
+                  example: 99.9
+              required:
+                - sku
+                - name
+                - quantity
+      responses:
+        '201':
+          description: Product created successfully
+        '409':
+          description: Product already exists
+
+  /products/{sku}:
+    get:
+      summary: Get product details by SKU
+      parameters:
+        - in: path
+          name: sku
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Product details
+        '404':
+          description: Product not found
+
+    put:
+      summary: Update product details
+      parameters:
+        - in: path
+          name: sku
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Widget Pro"
+                quantity:
+                  type: integer
+                  example: 15
+                price:
+                  type: number
+                  example: 109.9
+      responses:
+        '200':
+          description: Product updated successfully
+        '404':
+          description: Product not found
+
+  /inventory/check:
+    post:
+      summary: Check product availability
+      description: Takes a list of SKU and qty, returns if they are available.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      sku:
+                        type: string
+                        example: "A101"
+                      qty:
+                        type: integer
+                        example: 2
+              required:
+                - items
+      responses:
+        '200':
+          description: Availability check result
+
+  /inventory/deduct:
+    post:
+      summary: Deduct product quantities after order is placed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      sku:
+                        type: string
+                        example: "A101"
+                      qty:
+                        type: integer
+                        example: 2
+              required:
+                - items
+      responses:
+        '200':
+          description: Deduction successful
+        '400':
+          description: Not enough stock
+        '404':
+          description: Product not found
