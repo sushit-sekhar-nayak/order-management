@@ -75,7 +75,7 @@ python app.py
 Swagger UI: http://127.0.0.1:5003/docs
 Make sure RabbitMQ is running locally on default port 5672.
 
-🧪 Sample API Flow
+Sample API Flow
 
 1. Add product to inventory
 curl -X POST http://127.0.0.1:5001/products \
@@ -97,7 +97,7 @@ curl http://127.0.0.1:5001/products/A101
 Check shipping status:
 curl http://127.0.0.1:5003/shipping/<order_id>
 
-🐳 Docker
+### Docker
 Each service has its own Dockerfile. Build and run with:
 docker build -t inventory-service ./inventory
 docker build -t order-service ./order
@@ -107,7 +107,7 @@ docker run -p 5001:5001 inventory-service
 docker run -p 5002:5002 order-service
 docker run -p 5003:5003 shipping-service
 
-☸️ Kubernetes Deployment
+### Kubernetes Deployment
 Kubernetes YAML files are in the k8s/ folder. Example:
 kubectl apply -f k8s/rabbitmq-deployment.yaml
 kubectl apply -f k8s/inventory-deployment.yaml
@@ -116,21 +116,21 @@ kubectl apply -f k8s/shipping-deployment.yaml
 Verify pods:
 kubectl get pods
 
-📄 API Documentation
+### API Documentation
 All services provide Swagger UI at /docs.
 OpenAPI spec is located in each service under static/openapi.yaml.
 
-🔗 Notes
+### Notes
 Each service has its own SQLite database (*.db) for simplicity.
 Communication between Order → Shipping uses RabbitMQ.
 Invoice generation currently returns metadata (JSON). PDF generation can be added.
 UI can be implemented in React or Angular (optional).
 
-🎯 Bonus (Optional)
+### Bonus (Optional)
 Integrate a Payment Gateway during order placement.
 Add JWT-based authentication for all APIs.
 
-📝 References
+### References
 Flask Documentation
 Flask-SQLAlchemy
 Flask-Swagger-UI
